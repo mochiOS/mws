@@ -3,3 +3,4 @@ pub mod restore;
 pub mod status;
 pub mod hook;
 pub mod log;
+pub mod work;

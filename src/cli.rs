@@ -27,6 +27,9 @@ pub enum Command {
 
         #[arg(short, long)]
         work: Option<String>,
+
+        #[arg(long)]
+        dry_run: bool,
     },
     /// Show workspace status
     Status,
@@ -39,6 +42,12 @@ pub enum Command {
 
     /// Show workspace history
     Log,
+
+    /// Manage workspace
+    Work {
+        #[command(subcommand)]
+        command: WorkCommand
+    }
 }
 
 #[derive(Subcommand)]
@@ -51,4 +60,18 @@ pub enum HookCommand {
         #[arg(long)]
         repository: Option<PathBuf>,
     },
+}
+
+#[derive(Subcommand)]
+pub enum WorkCommand {
+    /// Delete a workspace work branch from all repositories
+    Clean {
+        branch: String,
+
+        #[arg(short, long)]
+        force: bool,
+    },
+
+    /// List workspace work branches
+    List,
 }

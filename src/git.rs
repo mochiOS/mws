@@ -219,6 +219,89 @@ pub fn switch_work_branch(
     }
 }
 
+pub fn short_hash(hash: &str) -> String {
+    hash.chars().take(12).collect()
+}
+
+pub fn branches_with_prefix(
+    repository: &Path,
+    prefix: &str,
+) -> Result<Vec<String>> {
+    let pattern = format!("{prefix}*");
+    let value = output(
+        repository,
+        &[
+            "branch",
+            "--list",
+            &pattern,
+            "--format=%(refname:short)",
+        ],
+    )?;
+
+    Ok(value
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect())
+}
+
+pub fn current_branch(repository: &Path) -> Result<Option<String>> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .arg("symbolic-ref")
+        .arg("--quiet")
+        .arg("--short")
+        .arg("HEAD")
+        .output()
+        .with_context(|| {
+            format!(
+                "failed to run git symbolic-ref in {}",
+                repository.display()
+            )
+        })?;
+
+    if output.status.success() {
+        let value = String::from_utf8(output.stdout)?;
+
+        return Ok(Some(value.trim().to_owned()));
+    }
+
+    if output.status.code() == Some(1) {
+        return Ok(None);
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    bail!(
+		"git symbolic-ref failed in {}: {}",
+		repository.display(),
+		stderr.trim()
+	);
+}
+
+pub fn delete_branch(
+    repository: &Path,
+    branch: &str,
+    force: bool,
+) -> Result<()> {
+    let option = if force {
+        "-D"
+    } else {
+        "-d"
+    };
+
+    run(
+        repository,
+        &[
+            "branch",
+            option,
+            branch,
+        ],
+    )
+}
+
 fn run(repository: &Path, args: &[&str]) -> Result<()> {
     let output = Command::new("git")
         .arg("-C")
