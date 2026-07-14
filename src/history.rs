@@ -60,7 +60,7 @@ pub fn print(workspace: &Workspace) -> Result<()> {
     for entry in tree.entries.iter().rev() {
         println!(
             "{} {}: {} ({})",
-            entry.date,
+            format_date(&entry.date),
             entry.path,
             entry.message,
             git::short_hash(&entry.hash)
@@ -96,4 +96,11 @@ fn save_tree(path: &Path, tree: &Tree) -> Result<()> {
     fs::rename(&temp_path, path)?;
 
     Ok(())
+}
+
+fn format_date(value: &str) -> String {
+    match chrono::DateTime::parse_from_rfc3339(value) {
+        Ok(date) => date.format("%Y-%m-%d %H:%M:%S").to_string(),
+        Err(_) => value.to_owned(),
+    }
 }
