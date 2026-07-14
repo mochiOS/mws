@@ -22,7 +22,7 @@ fn main() -> Result<()> {
         } => {
             commands::restore::run(&revision, force, work.as_deref())?;
         }
-        cli::Command::Status => commands::status::run(),
+        cli::Command::Status => commands::status::run()?,
         cli::Command::Hook { command } => {
             commands::hook::run(command)?;
         },

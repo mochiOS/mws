@@ -219,6 +219,10 @@ pub fn switch_work_branch(
     }
 }
 
+pub fn short_hash(hash: &str) -> String {
+    hash.chars().take(12).collect()
+}
+
 fn run(repository: &Path, args: &[&str]) -> Result<()> {
     let output = Command::new("git")
         .arg("-C")

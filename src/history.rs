@@ -1,10 +1,10 @@
 use std::fs;
 use std::path::Path;
 
+use crate::git::short_hash;
+use crate::workspace::Workspace;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
-
-use crate::workspace::Workspace;
 
 const TREE_VERSION: u32 = 1;
 
@@ -60,7 +60,7 @@ pub fn print(workspace: &Workspace) -> Result<()> {
     let tree = load_tree(&workspace.tree_path())?;
 
     for entry in tree.entries.iter().rev() {
-        println!("\x1b[33mcommit {}\x1b[0m", entry.hash);
+        println!("\x1b[33mcommit {}\x1b[0m", short_hash(&entry.hash));
         println!("Author: {}", entry.author);
         println!("Date:   {}", format_date(&entry.date));
         println!();
