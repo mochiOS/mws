@@ -77,6 +77,14 @@ pub fn resolve_snapshot_id(
 ) -> Result<String> {
     let tree = load_tree(&workspace.tree_path())?;
 
+    if target == "latest" {
+        let Some(entry) = tree.entries.last() else {
+            bail!("workspace history is empty");
+        };
+
+        return Ok(entry.snapshot.clone());
+    }
+
     let mut matches = Vec::new();
 
     for entry in &tree.entries {
