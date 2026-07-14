@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
@@ -20,6 +21,7 @@ pub fn run(command: WorkCommand) -> Result<()> {
             branch,
             force,
         } => clean(&branch, force),
+        WorkCommand::List => list(),
     }
 }
 
@@ -146,4 +148,63 @@ fn confirm() -> Result<bool> {
     let input = input.trim();
 
     Ok(input == "y" || input == "Y" || input == "yes")
+}
+
+fn list() -> Result<()> {
+    let workspace = Workspace::discover()?;
+    let projects = manifest::parse(&workspace)?;
+    let mut works: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for project in &projects {
+        let repository = workspace
+            .root()
+            .join(&project.path)
+            .canonicalize()
+            .with_context(|| {
+                format!(
+                    "repository does not exist: {}",
+                    workspace.root().join(&project.path).display()
+                )
+            })?;
+
+        let branches = git::branches_with_prefix(
+            &repository,
+            "mws/",
+        )?;
+        let current_branch = git::current_branch(&repository)?;
+
+        for branch in branches {
+            let mut line = project.path.display().to_string();
+
+            if current_branch.as_deref() == Some(branch.as_str()) {
+                line.push_str(" checked out");
+            }
+
+            works
+                .entry(branch)
+                .or_default()
+                .push(line);
+        }
+    }
+
+    if works.is_empty() {
+        println!("mws: no work branches");
+        return Ok(());
+    }
+
+    for (branch, projects) in works {
+        println!("\x1b[1;32mwork branch: mws/{}\x1b[0m", display_work_name(&branch));
+
+        for project in projects {
+            println!("  {}", project);
+        }
+
+        println!();
+    }
+
+    Ok(())
+}
+
+fn display_work_name(branch: &str) -> &str {
+    branch.strip_prefix("mws/").unwrap_or(branch)
 }

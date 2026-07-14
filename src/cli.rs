@@ -61,10 +61,14 @@ pub enum HookCommand {
 
 #[derive(Subcommand)]
 pub enum WorkCommand {
+    /// Delete a workspace work branch from all repositories
     Clean {
         branch: String,
 
         #[arg(short, long)]
         force: bool,
-    }
+    },
+
+    /// List workspace work branches
+    List,
 }
