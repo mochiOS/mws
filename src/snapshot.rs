@@ -3,14 +3,14 @@ use crate::manifest::Project;
 use crate::workspace::Workspace;
 use anyhow::{bail, Context, Result};
 use chrono::Local;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 const SNAPSHOT_VERSION: u32 = 1;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct Snapshot {
     version: u32,
     id: String,
@@ -19,7 +19,7 @@ struct Snapshot {
     projects: Vec<SnapshotProject>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct SnapshotTrigger {
     name: String,
     path: String,
@@ -29,7 +29,7 @@ struct SnapshotTrigger {
     message: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct SnapshotProject {
     name: String,
     path: String,
@@ -44,6 +44,52 @@ pub struct SavedSnapshot {
     pub trigger_head: String,
     pub trigger_author: String,
     pub trigger_message: String,
+}
+
+pub struct LoadedSnapshot {
+    pub id: String,
+    pub projects: Vec<LoadedSnapshotProject>,
+}
+
+#[allow(unused)]
+pub struct LoadedSnapshotProject {
+    pub name: String,
+    pub path: PathBuf,
+    pub head: String,
+}
+
+pub fn load(
+    workspace: &Workspace,
+    id: &str,
+) -> Result<LoadedSnapshot> {
+    let file_name = if id.ends_with(".toml") {
+        id.to_owned()
+    } else {
+        format!("{id}.toml")
+    };
+
+    let path = workspace.snapshot_directory().join(file_name);
+    let content = fs::read_to_string(&path).with_context(|| {
+        format!(
+            "failed to read snapshot: {}",
+            path.display()
+        )
+    })?;
+
+    let snapshot: Snapshot = toml::from_str(&content)?;
+
+    Ok(LoadedSnapshot {
+        id: snapshot.id,
+        projects: snapshot
+            .projects
+            .into_iter()
+            .map(|project| LoadedSnapshotProject {
+                name: project.name,
+                path: PathBuf::from(project.path),
+                head: project.head,
+            })
+            .collect(),
+    })
 }
 
 pub fn save_current(

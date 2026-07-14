@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::workspace::Workspace;
@@ -69,6 +69,40 @@ pub fn print(workspace: &Workspace) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn resolve_snapshot_id(
+    workspace: &Workspace,
+    target: &str,
+) -> Result<String> {
+    let tree = load_tree(&workspace.tree_path())?;
+
+    let mut matches = Vec::new();
+
+    for entry in &tree.entries {
+        if entry.snapshot == target
+            || entry.snapshot.starts_with(target)
+            || entry.hash == target
+            || entry.hash.starts_with(target)
+        {
+            matches.push(entry.snapshot.clone());
+        }
+    }
+
+    matches.sort();
+    matches.dedup();
+
+    match matches.len() {
+        0 => {
+            bail!("snapshot or commit not found: {}", target)
+        }
+        1 => {
+            Ok(matches.remove(0))
+        }
+        _ => {
+            bail!("ambiguous snapshot or commit: {}", target)
+        }
+    }
 }
 
 fn load_tree(path: &Path) -> Result<Tree> {

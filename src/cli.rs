@@ -21,6 +21,9 @@ pub enum Command {
     /// Restore workspace
     Restore {
         revision: String,
+
+        #[arg(short, long)]
+        force: bool,
     },
 
     /// Show workspace status

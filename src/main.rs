@@ -15,8 +15,11 @@ fn main() -> Result<()> {
 
     match cli.command {
         cli::Command::Init => commands::init::run()?,
-        cli::Command::Restore { revision } => {
-            commands::restore::run(&revision);
+        cli::Command::Restore {
+            revision,
+            force,
+        } => {
+            commands::restore::run(&revision, force)?;
         }
         cli::Command::Status => commands::status::run(),
         cli::Command::Hook { command } => {

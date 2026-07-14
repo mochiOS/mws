@@ -160,3 +160,67 @@ pub fn commit_author(repository: &Path, revision: &str) -> Result<String> {
 
     Ok(value.trim_end().to_owned())
 }
+
+pub fn checkout(
+    repository: &Path,
+    revision: &str,
+) -> Result<()> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .arg("checkout")
+        .arg("--detach")
+        .arg(revision)
+        .output()
+        .with_context(|| {
+            format!(
+                "failed to run git checkout in {}",
+                repository.display()
+            )
+        })?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        bail!(
+			"git checkout failed in {}: {}",
+			repository.display(),
+			stderr.trim()
+		);
+    }
+
+    Ok(())
+}
+
+pub fn force_clean(repository: &Path) -> Result<()> {
+    run(repository, &["reset", "--hard"])?;
+    run(repository, &["clean", "-fd"])?;
+
+    Ok(())
+}
+
+fn run(repository: &Path, args: &[&str]) -> Result<()> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .args(args)
+        .output()
+        .with_context(|| {
+            format!(
+                "failed to run git in {}",
+                repository.display()
+            )
+        })?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        bail!(
+			"git command failed in {}: {}",
+			repository.display(),
+			stderr.trim()
+		);
+    }
+
+    Ok(())
+}
