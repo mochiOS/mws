@@ -60,7 +60,7 @@ pub fn print(workspace: &Workspace) -> Result<()> {
     let tree = load_tree(&workspace.tree_path())?;
 
     for entry in tree.entries.iter().rev() {
-        println!("\033[33mcommit {}\033[0m", entry.hash);
+        println!("\x1b[33mcommit {}\x1b[0m", entry.hash);
         println!("Author: {}", entry.author);
         println!("Date:   {}", format_date(&entry.date));
         println!();
