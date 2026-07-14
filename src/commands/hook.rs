@@ -37,6 +37,11 @@ fn run_post_commit(
     }
 
     let projects = manifest::parse(&workspace)?;
+
+    if projects.is_empty() {
+        bail!("manifest contains no projects");
+    }
+
     let trigger = find_trigger_project(&projects, workspace.root(), &repository)?;
 
     eprintln!("mws: post-commit: {}", trigger);

@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use chrono::Local;
 use serde::Serialize;
 
@@ -30,7 +30,6 @@ struct SnapshotProject {
     name: String,
     path: String,
     head: String,
-    dirty: bool,
 }
 
 pub fn save_current(
@@ -39,7 +38,12 @@ pub fn save_current(
     trigger_name: &str,
     trigger_repository: &Path,
 ) -> Result<PathBuf> {
+    if projects.is_empty() {
+        bail!("refusing to save empty snapshot");
+    }
+
     let created = Local::now();
+
     let snapshot = collect_snapshot(
         workspace,
         projects,
@@ -47,6 +51,10 @@ pub fn save_current(
         trigger_repository,
         created.to_rfc3339(),
     )?;
+
+    if snapshot.projects.is_empty() {
+        bail!("refusing to save snapshot with no projects");
+    }
 
     let directory = workspace.snapshot_directory();
 
@@ -90,14 +98,21 @@ fn collect_snapshot(
                 )
             })?;
 
+        let head = git::head(&repository)?;
         let dirty = git::is_dirty(&repository)?;
 
         if dirty {
-            anyhow::bail!(
-                "repository has uncommitted changes: {}",
-                project.path.display()
-            );
+            bail!(
+				"repository has uncommitted changes: {}",
+				project.path.display()
+			);
         }
+
+        snapshot_projects.push(SnapshotProject {
+            name: project.name.clone(),
+            path: project.path.display().to_string(),
+            head,
+        });
     }
 
     Ok(Snapshot {
