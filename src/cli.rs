@@ -27,6 +27,9 @@ pub enum Command {
 
         #[arg(short, long)]
         work: Option<String>,
+
+        #[arg(long)]
+        dry_run: bool,
     },
     /// Show workspace status
     Status,

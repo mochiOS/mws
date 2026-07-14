@@ -19,8 +19,9 @@ fn main() -> Result<()> {
             revision,
             force,
             work,
+            dry_run,
         } => {
-            commands::restore::run(&revision, force, work.as_deref())?;
+            commands::restore::run(&revision, force, work.as_deref(), dry_run)?;
         }
         cli::Command::Status => commands::status::run()?,
         cli::Command::Hook { command } => {
