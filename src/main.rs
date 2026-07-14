@@ -27,6 +27,7 @@ fn main() -> Result<()> {
             commands::hook::run(command)?;
         },
         cli::Command::Log => commands::log::run()?,
+        cli::Command::Work { command } => commands::work::run(command)?,
     }
 
     Ok(())

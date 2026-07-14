@@ -39,6 +39,12 @@ pub enum Command {
 
     /// Show workspace history
     Log,
+
+    /// Manage workspace
+    Work {
+        #[command(subcommand)]
+        command: WorkCommand
+    }
 }
 
 #[derive(Subcommand)]
@@ -51,4 +57,14 @@ pub enum HookCommand {
         #[arg(long)]
         repository: Option<PathBuf>,
     },
+}
+
+#[derive(Subcommand)]
+pub enum WorkCommand {
+    Clean {
+        branch: String,
+
+        #[arg(short, long)]
+        force: bool,
+    }
 }
