@@ -1,19 +1,19 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use anyhow::{bail, Context, Result};
-use chrono::Local;
-use serde::Serialize;
-
 use crate::git;
 use crate::manifest::Project;
 use crate::workspace::Workspace;
+use anyhow::{bail, Context, Result};
+use chrono::Local;
+use serde::Serialize;
+use sha2::{Digest, Sha256};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 const SNAPSHOT_VERSION: u32 = 1;
 
 #[derive(Serialize)]
 struct Snapshot {
     version: u32,
+    id: String,
     created: String,
     trigger: SnapshotTrigger,
     projects: Vec<SnapshotProject>,
@@ -60,11 +60,7 @@ pub fn save_current(
 
     fs::create_dir_all(&directory)?;
 
-    let file_name = format!(
-        "{}-{}.toml",
-        created.format("%Y%m%d-%H%M%S"),
-        sanitize_file_name(trigger_name)
-    );
+    let file_name = format!("{}.toml", snapshot.id);
 
     let path = directory.join(file_name);
     let temp_path = path.with_extension("toml.tmp");
@@ -115,8 +111,11 @@ fn collect_snapshot(
         });
     }
 
+    let id = snapshot_id(&snapshot_projects);
+
     Ok(Snapshot {
         version: SNAPSHOT_VERSION,
+        id,
         created,
         trigger: SnapshotTrigger {
             name: trigger_name.to_owned(),
@@ -126,19 +125,23 @@ fn collect_snapshot(
     })
 }
 
-fn sanitize_file_name(value: &str) -> String {
-    value
-        .chars()
-        .map(|character| {
-            if character.is_ascii_alphanumeric()
-                || character == '-'
-                || character == '_'
-                || character == '.'
-            {
-                character
-            } else {
-                '_'
-            }
-        })
+fn snapshot_id(projects: &[SnapshotProject]) -> String {
+    let mut hasher = Sha256::new();
+
+    for project in projects {
+        hasher.update(project.name.as_bytes());
+        hasher.update(b"\0");
+        hasher.update(project.path.as_bytes());
+        hasher.update(b"\0");
+        hasher.update(project.head.as_bytes());
+        hasher.update(b"\0");
+    }
+
+    let digest = hasher.finalize();
+
+    digest
+        .iter()
+        .take(12)
+        .map(|byte| format!("{byte:02x}"))
         .collect()
 }
