@@ -28,8 +28,12 @@ impl Workspace {
         &self.root
     }
 
-    pub fn manifest_path(&self) -> PathBuf {
-        self.root.join(".repo/manifest.xml")
+    pub fn workspace_directory(&self) -> PathBuf {
+        self.root.join(".workspace")
+    }
+
+    pub fn snapshot_directory(&self) -> PathBuf {
+        self.workspace_directory().join("snapshots")
     }
 
     pub fn from_root(root: impl Into<PathBuf>) -> Result<Self> {

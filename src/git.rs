@@ -47,3 +47,14 @@ fn output(repository: &Path, args: &[&str]) -> Result<String> {
 
     Ok(String::from_utf8(output.stdout)?)
 }
+
+pub fn short_status(repository: &Path) -> Result<String> {
+    output(
+        repository,
+        &[
+            "status",
+            "--short",
+            "--untracked-files=all",
+        ],
+    )
+}

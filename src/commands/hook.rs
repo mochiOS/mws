@@ -5,6 +5,7 @@ use anyhow::{bail, Context, Result};
 use crate::cli::HookCommand;
 use crate::git;
 use crate::manifest;
+use crate::snapshot;
 use crate::workspace::Workspace;
 
 pub fn run(command: HookCommand) -> Result<()> {
@@ -71,6 +72,27 @@ fn run_post_commit(
         }
     }
 
+    let dirty_projects = find_dirty_projects(&projects, workspace.root())?;
+
+    if !dirty_projects.is_empty() {
+        eprintln!("mws: snapshot skipped: workspace has dirty repositories");
+
+        for project in dirty_projects {
+            eprintln!("mws: dirty: {}", project);
+        }
+
+        return Ok(());
+    }
+
+    let path = snapshot::save_current(
+        &workspace,
+        &projects,
+        &trigger,
+        &repository,
+    )?;
+
+    eprintln!("mws: saved: {}", path.display());
+
     Ok(())
 }
 
@@ -96,4 +118,29 @@ fn find_trigger_project(
     }
 
     Ok(repository.display().to_string())
+}
+
+fn find_dirty_projects(
+    projects: &[manifest::Project],
+    workspace_root: &Path,
+) -> Result<Vec<String>> {
+    let mut dirty_projects = Vec::new();
+
+    for project in projects {
+        let repository = workspace_root
+            .join(&project.path)
+            .canonicalize()
+            .with_context(|| {
+                format!(
+                    "repository does not exist: {}",
+                    workspace_root.join(&project.path).display()
+                )
+            })?;
+
+        if git::is_dirty(&repository)? {
+            dirty_projects.push(project.path.display().to_string());
+        }
+    }
+
+    Ok(dirty_projects)
 }

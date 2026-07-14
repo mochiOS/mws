@@ -4,6 +4,7 @@ mod hook;
 mod manifest;
 mod workspace;
 mod git;
+mod snapshot;
 
 use anyhow::Result;
 use clap::Parser;
