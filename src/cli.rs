@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(
@@ -24,4 +25,22 @@ pub enum Command {
 
     /// Show workspace status
     Status,
+
+    /// Internal hook entrypoint
+    Hook {
+        #[command(subcommand)]
+        command: HookCommand,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum HookCommand {
+    /// Called from git post-commit hook
+    PostCommit {
+        #[arg(long)]
+        workspace: Option<PathBuf>,
+
+        #[arg(long)]
+        repository: Option<PathBuf>,
+    },
 }
