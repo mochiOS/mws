@@ -15,6 +15,7 @@ pub enum HookAction {
     Update,
 }
 
+#[allow(unused)]
 impl HookAction {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -24,6 +25,7 @@ impl HookAction {
     }
 }
 
+#[allow(unused)]
 pub struct HookPlan {
     pub project_name: String,
     pub repository: PathBuf,

@@ -1,14 +1,13 @@
+use crate::workspace::Workspace;
+use anyhow::{bail, Result};
+use quick_xml::events::{BytesStart, Event};
+use quick_xml::Reader;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 
-use anyhow::{bail, Result};
-use quick_xml::events::{BytesStart, Event};
-use quick_xml::Reader;
-
-use crate::workspace::Workspace;
-
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct Project {
     pub name: String,

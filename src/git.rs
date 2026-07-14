@@ -62,10 +62,6 @@ pub fn commit_subject(repository: &Path, revision: &str) -> Result<String> {
     Ok(value.trim_end().to_owned())
 }
 
-pub fn short_hash(hash: &str) -> String {
-    hash.chars().take(12).collect()
-}
-
 pub fn commit_paths(
     repository: &Path,
     paths: &[&Path],
