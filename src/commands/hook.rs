@@ -26,7 +26,7 @@ fn run_post_commit(
     if std::env::var_os("MWS_INTERNAL_COMMIT").is_some() {
         return Ok(());
     }
-    
+
     let workspace_path = workspace.context("missing --workspace")?;
     let repository_path = repository.context("missing --repository")?;
 
@@ -116,7 +116,7 @@ fn run_post_commit(
         },
     )?;
 
-    let state_repository = workspace.workspace_directory().canonicalize()?;
+    let state_repository = workspace.root().canonicalize()?;
     let tree_path = workspace.tree_path();
 
     let commit_message = format!(
