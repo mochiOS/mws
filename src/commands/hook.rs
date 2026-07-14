@@ -23,6 +23,10 @@ fn run_post_commit(
     workspace: Option<PathBuf>,
     repository: Option<PathBuf>,
 ) -> Result<()> {
+    if std::env::var_os("MWS_INTERNAL_COMMIT").is_some() {
+        return Ok(());
+    }
+    
     let workspace_path = workspace.context("missing --workspace")?;
     let repository_path = repository.context("missing --repository")?;
 
@@ -111,8 +115,32 @@ fn run_post_commit(
         },
     )?;
 
+    let state_repository = workspace.workspace_directory().canonicalize()?;
+    let tree_path = workspace.tree_path();
+
+    let commit_message = format!(
+        "{}: {}",
+        saved.trigger_path,
+        saved.trigger_message
+    );
+
+    let committed = git::commit_paths(
+        &state_repository,
+        &[
+            saved.path.as_path(),
+            tree_path.as_path(),
+        ],
+        &commit_message,
+    )?;
+
     eprintln!("mws: saved: {}", saved.path.display());
-    eprintln!("mws: tree: {}", workspace.tree_path().display());
+    eprintln!("mws: tree: {}", tree_path.display());
+
+    if committed {
+        eprintln!("mws: committed: {}", commit_message);
+    } else {
+        eprintln!("mws: commit skipped: no changes");
+    }
 
     Ok(())
 }

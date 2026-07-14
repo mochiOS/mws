@@ -65,3 +65,88 @@ pub fn commit_subject(repository: &Path, revision: &str) -> Result<String> {
 pub fn short_hash(hash: &str) -> String {
     hash.chars().take(12).collect()
 }
+
+pub fn commit_paths(
+    repository: &Path,
+    paths: &[&Path],
+    message: &str,
+) -> Result<bool> {
+    for path in paths {
+        let relative_path = path.strip_prefix(repository).with_context(|| {
+            format!(
+                "path is outside repository: {}",
+                path.display()
+            )
+        })?;
+
+        let output = Command::new("git")
+            .arg("-C")
+            .arg(repository)
+            .arg("add")
+            .arg("--")
+            .arg(relative_path)
+            .output()
+            .with_context(|| {
+                format!(
+                    "failed to run git add in {}",
+                    repository.display()
+                )
+            })?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+
+            bail!(
+				"git add failed in {}: {}",
+				repository.display(),
+				stderr.trim()
+			);
+        }
+    }
+
+    if !has_staged_changes(repository)? {
+        return Ok(false);
+    }
+
+    let status = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .arg("commit")
+        .arg("-m")
+        .arg(message)
+        .env("MWS_INTERNAL_COMMIT", "1")
+        .status()
+        .with_context(|| {
+            format!(
+                "failed to run git commit in {}",
+                repository.display()
+            )
+        })?;
+
+    if !status.success() {
+        bail!(
+			"git commit failed in {}",
+			repository.display()
+		);
+    }
+
+    Ok(true)
+}
+
+fn has_staged_changes(repository: &Path) -> Result<bool> {
+    let status = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .arg("diff")
+        .arg("--cached")
+        .arg("--quiet")
+        .status()
+        .with_context(|| {
+            format!(
+                "failed to run git diff in {}",
+                repository.display()
+            )
+        })?;
+
+    Ok(!status.success())
+}
