@@ -22,32 +22,6 @@ pub fn is_dirty(repository: &Path) -> Result<bool> {
     Ok(!value.trim().is_empty())
 }
 
-fn output(repository: &Path, args: &[&str]) -> Result<String> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repository)
-        .args(args)
-        .output()
-        .with_context(|| {
-            format!(
-                "failed to run git in {}",
-                repository.display()
-            )
-        })?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-
-        bail!(
-			"git command failed in {}: {}",
-			repository.display(),
-			stderr.trim()
-		);
-    }
-
-    Ok(String::from_utf8(output.stdout)?)
-}
-
 pub fn commit_subject(repository: &Path, revision: &str) -> Result<String> {
     let value = output(
         repository,
@@ -129,24 +103,6 @@ pub fn commit_paths(
     Ok(true)
 }
 
-fn has_staged_changes(repository: &Path) -> Result<bool> {
-    let status = Command::new("git")
-        .arg("-C")
-        .arg(repository)
-        .arg("diff")
-        .arg("--cached")
-        .arg("--quiet")
-        .status()
-        .with_context(|| {
-            format!(
-                "failed to run git diff in {}",
-                repository.display()
-            )
-        })?;
-
-    Ok(!status.success())
-}
-
 pub fn commit_author(repository: &Path, revision: &str) -> Result<String> {
     let value = output(
         repository,
@@ -199,6 +155,70 @@ pub fn force_clean(repository: &Path) -> Result<()> {
     Ok(())
 }
 
+pub fn branch_exists(
+    repository: &Path,
+    name: &str,
+) -> Result<bool> {
+    let reference = format!("refs/heads/{name}");
+
+    let status = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .arg("show-ref")
+        .arg("--verify")
+        .arg("--quiet")
+        .arg(&reference)
+        .status()
+        .with_context(|| {
+            format!(
+                "failed to run git show-ref in {}",
+                repository.display()
+            )
+        })?;
+
+    match status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        _ => {
+            bail!(
+				"git show-ref failed in {}",
+				repository.display()
+			);
+        }
+    }
+}
+
+pub fn switch_work_branch(
+    repository: &Path,
+    name: &str,
+    revision: &str,
+    force: bool,
+) -> Result<()> {
+    let branch = format!("mws/{name}");
+
+    if force {
+        run(
+            repository,
+            &[
+                "switch",
+                "-C",
+                &branch,
+                revision,
+            ],
+        )
+    } else {
+        run(
+            repository,
+            &[
+                "switch",
+                "-c",
+                &branch,
+                revision,
+            ],
+        )
+    }
+}
+
 fn run(repository: &Path, args: &[&str]) -> Result<()> {
     let output = Command::new("git")
         .arg("-C")
@@ -223,4 +243,49 @@ fn run(repository: &Path, args: &[&str]) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn has_staged_changes(repository: &Path) -> Result<bool> {
+    let status = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .arg("diff")
+        .arg("--cached")
+        .arg("--quiet")
+        .status()
+        .with_context(|| {
+            format!(
+                "failed to run git diff in {}",
+                repository.display()
+            )
+        })?;
+
+    Ok(!status.success())
+}
+
+
+fn output(repository: &Path, args: &[&str]) -> Result<String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repository)
+        .args(args)
+        .output()
+        .with_context(|| {
+            format!(
+                "failed to run git in {}",
+                repository.display()
+            )
+        })?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        bail!(
+			"git command failed in {}: {}",
+			repository.display(),
+			stderr.trim()
+		);
+    }
+
+    Ok(String::from_utf8(output.stdout)?)
 }

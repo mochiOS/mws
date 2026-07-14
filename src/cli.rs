@@ -24,8 +24,10 @@ pub enum Command {
 
         #[arg(short, long)]
         force: bool,
-    },
 
+        #[arg(short, long)]
+        work: Option<String>,
+    },
     /// Show workspace status
     Status,
 
