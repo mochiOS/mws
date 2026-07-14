@@ -4,7 +4,6 @@ use std::path::Path;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::git;
 use crate::workspace::Workspace;
 
 const TREE_VERSION: u32 = 1;
@@ -20,8 +19,9 @@ struct TreeEntry {
     date: String,
     snapshot: String,
     path: String,
-    message: String,
     hash: String,
+    author: String,
+    message: String,
 }
 
 pub struct AppendEntry {
@@ -30,6 +30,7 @@ pub struct AppendEntry {
     pub path: String,
     pub message: String,
     pub hash: String,
+    pub author: String,
 }
 
 pub fn append(
@@ -46,6 +47,7 @@ pub fn append(
             path: entry.path,
             message: entry.message,
             hash: entry.hash,
+            author: entry.author,
         });
     }
 
@@ -58,13 +60,12 @@ pub fn print(workspace: &Workspace) -> Result<()> {
     let tree = load_tree(&workspace.tree_path())?;
 
     for entry in tree.entries.iter().rev() {
-        println!(
-            "{} {}: {} ({})",
-            format_date(&entry.date),
-            entry.path,
-            entry.message,
-            git::short_hash(&entry.hash)
-        );
+        println!("\033[33mcommit {}\033[0m", entry.hash);
+        println!("Author: {}", entry.author);
+        println!("Date:   {}", format_date(&entry.date));
+        println!();
+        println!("\t{}: {}", entry.path, entry.message);
+        println!();
     }
 
     Ok(())

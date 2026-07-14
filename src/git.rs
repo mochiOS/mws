@@ -150,3 +150,17 @@ fn has_staged_changes(repository: &Path) -> Result<bool> {
 
     Ok(!status.success())
 }
+
+pub fn commit_author(repository: &Path, revision: &str) -> Result<String> {
+    let value = output(
+        repository,
+        &[
+            "log",
+            "-1",
+            "--format=%an <%ae>",
+            revision,
+        ],
+    )?;
+
+    Ok(value.trim_end().to_owned())
+}

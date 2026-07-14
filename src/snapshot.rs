@@ -25,6 +25,7 @@ struct SnapshotTrigger {
     path: String,
     repository: String,
     head: String,
+    author: String,
     message: String,
 }
 
@@ -41,6 +42,7 @@ pub struct SavedSnapshot {
     pub created: String,
     pub trigger_path: String,
     pub trigger_head: String,
+    pub trigger_author: String,
     pub trigger_message: String,
 }
 
@@ -86,6 +88,7 @@ pub fn save_current(
         created,
         trigger_path: trigger.path.display().to_string(),
         trigger_head: snapshot.trigger.head.clone(),
+        trigger_author: snapshot.trigger.author.clone(),
         trigger_message: snapshot.trigger.message.clone(),
     })
 }
@@ -128,12 +131,16 @@ fn collect_snapshot(
         });
     }
 
-    let id = snapshot_id(&snapshot_projects);
     let trigger_head = git::head(trigger_repository)?;
+    let trigger_author = git::commit_author(
+        trigger_repository,
+        &trigger_head,
+    )?;
     let trigger_message = git::commit_subject(
         trigger_repository,
         &trigger_head,
     )?;
+    let id = snapshot_id(&snapshot_projects);
 
     Ok(Snapshot {
         version: SNAPSHOT_VERSION,
@@ -144,6 +151,7 @@ fn collect_snapshot(
             path: trigger.path.display().to_string(),
             repository: trigger_repository.display().to_string(),
             head: trigger_head,
+            author: trigger_author,
             message: trigger_message,
         },
         projects: snapshot_projects,

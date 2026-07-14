@@ -112,6 +112,7 @@ fn run_post_commit(
             path: saved.trigger_path.clone(),
             message: saved.trigger_message.clone(),
             hash: saved.trigger_head.clone(),
+            author: saved.trigger_author.clone(),
         },
     )?;
 
