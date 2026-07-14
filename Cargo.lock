@@ -8,13 +8,13 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "824a212faf96e9acacdbd09febd34438f8f711fb84e09a8916013cd7815ca28d"
 dependencies = [
-    "anstyle",
-    "anstyle-parse",
-    "anstyle-query",
-    "anstyle-wincon",
-    "colorchoice",
-    "is_terminal_polyfill",
-    "utf8parse",
+ "anstyle",
+ "anstyle-parse",
+ "anstyle-query",
+ "anstyle-wincon",
+ "colorchoice",
+ "is_terminal_polyfill",
+ "utf8parse",
 ]
 
 [[package]]
@@ -29,7 +29,7 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e"
 dependencies = [
-    "utf8parse",
+ "utf8parse",
 ]
 
 [[package]]
@@ -38,7 +38,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
-    "windows-sys",
+ "windows-sys",
 ]
 
 [[package]]
@@ -47,9 +47,9 @@ version = "3.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
-    "anstyle",
-    "once_cell_polyfill",
-    "windows-sys",
+ "anstyle",
+ "once_cell_polyfill",
+ "windows-sys",
 ]
 
 [[package]]
@@ -64,8 +64,8 @@ version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ddb117e43bbf7dacf0a4190fef4d345b9bad68dfc649cb349e7d17d28428e51"
 dependencies = [
-    "clap_builder",
-    "clap_derive",
+ "clap_builder",
+ "clap_derive",
 ]
 
 [[package]]
@@ -74,10 +74,10 @@ version = "4.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "714a53001bf66416adb0e2ef5ac857140e7dc3a0c48fb28b2f10762fc4b5069f"
 dependencies = [
-    "anstream",
-    "anstyle",
-    "clap_lex",
-    "strsim",
+ "anstream",
+ "anstyle",
+ "clap_lex",
+ "strsim",
 ]
 
 [[package]]
@@ -86,10 +86,10 @@ version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2ce8604710f6733aa641a2b3731eaa1e8b3d9973d5e3565da11800813f997a9"
 dependencies = [
-    "heck",
-    "proc-macro2",
-    "quote",
-    "syn",
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -126,9 +126,9 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 name = "mws"
 version = "0.1.0"
 dependencies = [
-    "anyhow",
-    "clap",
-    "quick-xml",
+ "anyhow",
+ "clap",
+ "quick-xml",
 ]
 
 [[package]]
@@ -143,7 +143,7 @@ version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
-    "unicode-ident",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -152,7 +152,7 @@ version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
 dependencies = [
-    "memchr",
+ "memchr",
 ]
 
 [[package]]
@@ -161,7 +161,7 @@ version = "1.0.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfbc457d0c7a0759a614551b11a6409e5951f6c7537be1f1b7682b9ae9230368"
 dependencies = [
-    "proc-macro2",
+ "proc-macro2",
 ]
 
 [[package]]
@@ -176,9 +176,9 @@ version = "2.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9ae57f904213ebb649ce6895b8a66c66f0203b9319718f69a5612a065b1422"
 dependencies = [
-    "proc-macro2",
-    "quote",
-    "unicode-ident",
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -205,5 +205,5 @@ version = "0.61.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
 dependencies = [
-    "windows-link",
+ "windows-link",
 ]

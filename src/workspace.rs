@@ -31,4 +31,17 @@ impl Workspace {
     pub fn manifest_path(&self) -> PathBuf {
         self.root.join(".repo/manifest.xml")
     }
+
+    pub fn from_root(root: impl Into<PathBuf>) -> Result<Self> {
+        let root = root.into().canonicalize()?;
+
+        if !root.join(".repo").is_dir() {
+            bail!(
+			"not a repo workspace: {}",
+			root.display()
+		);
+        }
+
+        Ok(Self { root })
+    }
 }

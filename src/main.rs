@@ -3,6 +3,7 @@ mod commands;
 mod hook;
 mod manifest;
 mod workspace;
+mod git;
 
 use anyhow::Result;
 use clap::Parser;

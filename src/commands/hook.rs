@@ -1,18 +1,99 @@
-use anyhow::Result;
+use std::path::{Path, PathBuf};
+
+use anyhow::{bail, Context, Result};
 
 use crate::cli::HookCommand;
+use crate::git;
+use crate::manifest;
+use crate::workspace::Workspace;
 
 pub fn run(command: HookCommand) -> Result<()> {
     match command {
         HookCommand::PostCommit {
-            workspace: _,
-            repository: _,
+            workspace,
+            repository,
         } => {
-            run_post_commit()
+            run_post_commit(workspace, repository)
         }
     }
 }
 
-fn run_post_commit() -> Result<()> {
+fn run_post_commit(
+    workspace: Option<PathBuf>,
+    repository: Option<PathBuf>,
+) -> Result<()> {
+    let workspace_path = workspace.context("missing --workspace")?;
+    let repository_path = repository.context("missing --repository")?;
+
+    let workspace = Workspace::from_root(workspace_path)?;
+    let repository = repository_path.canonicalize()?;
+
+    if !repository.starts_with(workspace.root()) {
+        bail!(
+			"repository escapes workspace: {}",
+			repository.display()
+		);
+    }
+
+    let projects = manifest::parse(&workspace)?;
+    let trigger = find_trigger_project(&projects, workspace.root(), &repository)?;
+
+    eprintln!("mws: post-commit: {}", trigger);
+    eprintln!("mws: workspace: {}", workspace.root().display());
+
+    for project in &projects {
+        let project_repository = workspace
+            .root()
+            .join(&project.path)
+            .canonicalize()
+            .with_context(|| {
+                format!(
+                    "repository does not exist: {}",
+                    workspace.root().join(&project.path).display()
+                )
+            })?;
+
+        let head = git::head(&project_repository)?;
+        let dirty = git::is_dirty(&project_repository)?;
+
+        if dirty {
+            eprintln!(
+                "mws: {:<28} {} dirty",
+                project.path.display(),
+                head
+            );
+        } else {
+            eprintln!(
+                "mws: {:<28} {}",
+                project.path.display(),
+                head
+            );
+        }
+    }
+
     Ok(())
+}
+
+fn find_trigger_project(
+    projects: &[manifest::Project],
+    workspace_root: &Path,
+    repository: &Path,
+) -> Result<String> {
+    for project in projects {
+        let project_repository = workspace_root
+            .join(&project.path)
+            .canonicalize()
+            .with_context(|| {
+                format!(
+                    "repository does not exist: {}",
+                    workspace_root.join(&project.path).display()
+                )
+            })?;
+
+        if project_repository == repository {
+            return Ok(project.name.clone());
+        }
+    }
+
+    Ok(repository.display().to_string())
 }
