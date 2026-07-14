@@ -9,13 +9,14 @@ use quick_xml::Reader;
 
 use crate::workspace::Workspace;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Project {
     pub name: String,
     pub path: PathBuf,
     pub remote: Option<String>,
     pub revision: Option<String>,
 }
+
 pub fn parse(workspace: &Workspace) -> Result<Vec<Project>> {
     let mut projects = Vec::new();
     let mut visited = HashSet::new();

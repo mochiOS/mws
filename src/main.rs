@@ -5,6 +5,7 @@ mod manifest;
 mod workspace;
 mod git;
 mod snapshot;
+mod history;
 
 use anyhow::Result;
 use clap::Parser;
@@ -20,7 +21,8 @@ fn main() -> Result<()> {
         cli::Command::Status => commands::status::run(),
         cli::Command::Hook { command } => {
             commands::hook::run(command)?;
-        }
+        },
+        cli::Command::Log => commands::log::run()?,
     }
 
     Ok(())

@@ -36,6 +36,10 @@ impl Workspace {
         self.workspace_directory().join("snapshots")
     }
 
+    pub fn tree_path(&self) -> PathBuf {
+        self.workspace_directory().join("tree.toml")
+    }
+
     pub fn from_root(root: impl Into<PathBuf>) -> Result<Self> {
         let root = root.into().canonicalize()?;
 

@@ -31,6 +31,9 @@ pub enum Command {
         #[command(subcommand)]
         command: HookCommand,
     },
+
+    /// Show workspace history
+    Log,
 }
 
 #[derive(Subcommand)]

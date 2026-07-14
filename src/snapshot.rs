@@ -22,7 +22,10 @@ struct Snapshot {
 #[derive(Serialize)]
 struct SnapshotTrigger {
     name: String,
+    path: String,
     repository: String,
+    head: String,
+    message: String,
 }
 
 #[derive(Serialize)]
@@ -32,24 +35,33 @@ struct SnapshotProject {
     head: String,
 }
 
+pub struct SavedSnapshot {
+    pub id: String,
+    pub path: PathBuf,
+    pub created: String,
+    pub trigger_path: String,
+    pub trigger_head: String,
+    pub trigger_message: String,
+}
+
 pub fn save_current(
     workspace: &Workspace,
     projects: &[Project],
-    trigger_name: &str,
+    trigger: &Project,
     trigger_repository: &Path,
-) -> Result<PathBuf> {
+) -> Result<SavedSnapshot> {
     if projects.is_empty() {
         bail!("refusing to save empty snapshot");
     }
 
-    let created = Local::now();
+    let created = Local::now().to_rfc3339();
 
     let snapshot = collect_snapshot(
         workspace,
         projects,
-        trigger_name,
+        trigger,
         trigger_repository,
-        created.to_rfc3339(),
+        created.clone(),
     )?;
 
     if snapshot.projects.is_empty() {
@@ -60,9 +72,7 @@ pub fn save_current(
 
     fs::create_dir_all(&directory)?;
 
-    let file_name = format!("{}.toml", snapshot.id);
-
-    let path = directory.join(file_name);
+    let path = directory.join(format!("{}.toml", snapshot.id));
     let temp_path = path.with_extension("toml.tmp");
 
     let content = toml::to_string_pretty(&snapshot)?;
@@ -70,13 +80,20 @@ pub fn save_current(
     fs::write(&temp_path, content)?;
     fs::rename(&temp_path, &path)?;
 
-    Ok(path)
+    Ok(SavedSnapshot {
+        id: snapshot.id.clone(),
+        path,
+        created,
+        trigger_path: trigger.path.display().to_string(),
+        trigger_head: snapshot.trigger.head.clone(),
+        trigger_message: snapshot.trigger.message.clone(),
+    })
 }
 
 fn collect_snapshot(
     workspace: &Workspace,
     projects: &[Project],
-    trigger_name: &str,
+    trigger: &Project,
     trigger_repository: &Path,
     created: String,
 ) -> Result<Snapshot> {
@@ -112,14 +129,22 @@ fn collect_snapshot(
     }
 
     let id = snapshot_id(&snapshot_projects);
+    let trigger_head = git::head(trigger_repository)?;
+    let trigger_message = git::commit_subject(
+        trigger_repository,
+        &trigger_head,
+    )?;
 
     Ok(Snapshot {
         version: SNAPSHOT_VERSION,
         id,
         created,
         trigger: SnapshotTrigger {
-            name: trigger_name.to_owned(),
+            name: trigger.name.clone(),
+            path: trigger.path.display().to_string(),
             repository: trigger_repository.display().to_string(),
+            head: trigger_head,
+            message: trigger_message,
         },
         projects: snapshot_projects,
     })

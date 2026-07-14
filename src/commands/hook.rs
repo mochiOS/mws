@@ -3,10 +3,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use crate::cli::HookCommand;
-use crate::git;
 use crate::manifest;
 use crate::snapshot;
 use crate::workspace::Workspace;
+use crate::{git, history};
 
 pub fn run(command: HookCommand) -> Result<()> {
     match command {
@@ -42,9 +42,13 @@ fn run_post_commit(
         bail!("manifest contains no projects");
     }
 
-    let trigger = find_trigger_project(&projects, workspace.root(), &repository)?;
+    let trigger = find_trigger_project(
+        &projects,
+        workspace.root(),
+        &repository,
+    )?;
 
-    eprintln!("mws: post-commit: {}", trigger);
+    eprintln!("mws: post-commit: {}", trigger.name);
     eprintln!("mws: workspace: {}", workspace.root().display());
 
     for project in &projects {
@@ -89,14 +93,26 @@ fn run_post_commit(
         return Ok(());
     }
 
-    let path = snapshot::save_current(
+    let saved = snapshot::save_current(
         &workspace,
         &projects,
         &trigger,
         &repository,
     )?;
 
-    eprintln!("mws: saved: {}", path.display());
+    history::append(
+        &workspace,
+        history::AppendEntry {
+            date: saved.created.clone(),
+            snapshot: saved.id.clone(),
+            path: saved.trigger_path.clone(),
+            message: saved.trigger_message.clone(),
+            hash: saved.trigger_head.clone(),
+        },
+    )?;
+
+    eprintln!("mws: saved: {}", saved.path.display());
+    eprintln!("mws: tree: {}", workspace.tree_path().display());
 
     Ok(())
 }
@@ -105,7 +121,7 @@ fn find_trigger_project(
     projects: &[manifest::Project],
     workspace_root: &Path,
     repository: &Path,
-) -> Result<String> {
+) -> Result<manifest::Project> {
     for project in projects {
         let project_repository = workspace_root
             .join(&project.path)
@@ -118,11 +134,14 @@ fn find_trigger_project(
             })?;
 
         if project_repository == repository {
-            return Ok(project.name.clone());
+            return Ok(project.clone());
         }
     }
 
-    Ok(repository.display().to_string())
+    bail!(
+		"trigger repository is not in manifest: {}",
+		repository.display()
+	)
 }
 
 fn find_dirty_projects(

@@ -48,13 +48,20 @@ fn output(repository: &Path, args: &[&str]) -> Result<String> {
     Ok(String::from_utf8(output.stdout)?)
 }
 
-pub fn short_status(repository: &Path) -> Result<String> {
-    output(
+pub fn commit_subject(repository: &Path, revision: &str) -> Result<String> {
+    let value = output(
         repository,
         &[
-            "status",
-            "--short",
-            "--untracked-files=all",
+            "log",
+            "-1",
+            "--format=%s",
+            revision,
         ],
-    )
+    )?;
+
+    Ok(value.trim_end().to_owned())
+}
+
+pub fn short_hash(hash: &str) -> String {
+    hash.chars().take(12).collect()
 }
