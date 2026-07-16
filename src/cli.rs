@@ -41,7 +41,18 @@ pub enum Command {
     },
 
     /// Show workspace history
-    Log,
+    Log {
+        #[arg(
+            short = 'n',
+            long = "max-count",
+            value_name = "COUNT",
+            conflicts_with = "all",
+        )]
+        max_count: Option<usize>,
+
+        #[arg(long)]
+        all: bool,
+    },
 
     /// Manage workspace
     Work {

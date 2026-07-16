@@ -27,7 +27,9 @@ fn main() -> Result<()> {
         cli::Command::Hook { command } => {
             commands::hook::run(command)?;
         },
-        cli::Command::Log => commands::log::run()?,
+        cli::Command::Log { max_count, all } => {
+            commands::log::run(max_count, all)?;
+        }
         cli::Command::Work { command } => commands::work::run(command)?,
     }
 
