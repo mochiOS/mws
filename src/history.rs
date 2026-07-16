@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::Path;
-
+use std::io::Write;
 use crate::git::short_hash;
 use crate::workspace::Workspace;
 use anyhow::{bail, Result};
@@ -56,16 +56,25 @@ pub fn append(
     Ok(())
 }
 
-pub fn print(workspace: &Workspace) -> Result<()> {
+pub fn print<W: Write>(
+    workspace: &Workspace,
+    limit: Option<usize>,
+    writer: &mut W,
+) -> Result<()> {
     let tree = load_tree(&workspace.tree_path())?;
+    let count = limit.unwrap_or(usize::MAX);
 
-    for entry in tree.entries.iter().rev() {
-        println!("\x1b[33mcommit {}\x1b[0m", short_hash(&entry.hash));
-        println!("Author: {}", entry.author);
-        println!("Date:   {}", format_date(&entry.date));
-        println!();
-        println!("\t{}: {}", entry.path, entry.message);
-        println!();
+    for entry in tree.entries.iter().rev().take(count) {
+        writeln!(
+            writer,
+            "\x1b[33mcommit {}\x1b[0m",
+            short_hash(&entry.hash),
+        )?;
+        writeln!(writer, "Author: {}", entry.author)?;
+        writeln!(writer, "Date:   {}", format_date(&entry.date))?;
+        writeln!(writer)?;
+        writeln!(writer, "\t{}: {}", entry.path, entry.message)?;
+        writeln!(writer)?;
     }
 
     Ok(())

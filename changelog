@@ -1,0 +1,7 @@
+the mws ChangeLog   - version 0.2
+    - Release date: 2026-07-16
+    - Release creator: tas0dev
+
+Changes:
+* Improved log display by piping it to
+  `less` for better readability.
