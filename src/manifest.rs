@@ -27,6 +27,18 @@ pub fn parse(workspace: &Workspace) -> Result<Vec<Project>> {
         &mut projects,
     )?;
 
+    let local_manifests = workspace.root().join(".repo/local_manifests");
+    if local_manifests.is_dir() {
+        let mut paths = std::fs::read_dir(local_manifests)?
+            .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+            .filter(|path| path.extension().is_some_and(|extension| extension == "xml"))
+            .collect::<Vec<_>>();
+        paths.sort();
+        for path in paths {
+            parse_file(path, workspace, &mut visited, &mut projects)?;
+        }
+    }
+
     Ok(projects)
 }
 
