@@ -23,7 +23,6 @@ struct Snapshot {
 struct SnapshotTrigger {
     name: String,
     path: String,
-    repository: String,
     head: String,
     author: String,
     message: String,
@@ -195,7 +194,6 @@ fn collect_snapshot(
         trigger: SnapshotTrigger {
             name: trigger.name.clone(),
             path: trigger.path.display().to_string(),
-            repository: trigger_repository.display().to_string(),
             head: trigger_head,
             author: trigger_author,
             message: trigger_message,
