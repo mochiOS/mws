@@ -1,7 +1,17 @@
-the mws ChangeLog   - version 0.2
-    - Release date: 2026-07-16
+the mws ChangeLog   - version 0.3
+    - Release date: 2026-09-25
     - Release creator: tas0dev
 
 Changes:
-* Improved log display by piping it to
-  `less` for better readability.
+* Stopped storing absolute repository paths
+  in workspace snapshots.
+* Changed workspace snapshots from TOML
+  files to a binary format.
+* Removed file extensions from snapshot
+  files.
+* Added a snapshot file header with a magic
+  value and format version.
+* Kept `tree.toml` as a human-readable
+  workspace history index.
+* Added backward compatibility for loading
+  legacy TOML snapshots.
