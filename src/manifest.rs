@@ -49,6 +49,19 @@ pub fn parse(workspace: &Workspace) -> Result<Vec<Project>> {
         }
     }
 
+    projects.retain(|project| {
+        let repository = workspace.root().join(&project.path);
+        if repository.is_dir() {
+            true
+        } else {
+            eprintln!(
+                "mws: skip unavailable project: {}",
+                project.path.display()
+            );
+            false
+        }
+    });
+
     Ok(projects)
 }
 
