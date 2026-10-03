@@ -20,8 +20,18 @@ pub fn parse(workspace: &Workspace) -> Result<Vec<Project>> {
     let mut projects = Vec::new();
     let mut visited = HashSet::new();
 
+    // The checked-in manifest is the workspace's source of truth. repo keeps
+    // its own copy under .repo, but that copy is not refreshed when a manifest
+    // change is committed locally and can therefore omit newly added projects.
+    let checked_in_manifest = workspace.root().join("default.xml");
+    let manifest = if checked_in_manifest.is_file() {
+        checked_in_manifest
+    } else {
+        workspace.root().join(".repo/manifest.xml")
+    };
+
     parse_file(
-        workspace.root().join(".repo/manifest.xml"),
+        manifest,
         workspace,
         &mut visited,
         &mut projects,
